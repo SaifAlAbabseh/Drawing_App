@@ -96,7 +96,7 @@ class Frame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             if(e.getSource() == clearItem) {
-                drawingPanel.points.clear();
+                drawingPanel.dots.clear();
                 drawingPanel.isLine.clear();
                 drawingPanel.repaint();
             }
@@ -148,15 +148,15 @@ class Frame extends JFrame {
         @Override
         public void keyPressed(KeyEvent e) {
             if(e.getKeyCode() == KeyEvent.VK_Z && e.isControlDown()) {
-                if(!(drawingPanel.points.isEmpty() && drawingPanel.isLine.isEmpty())) {
+                if(!(drawingPanel.dots.isEmpty() && drawingPanel.isLine.isEmpty())) {
                     if(drawingPanel.isLine.getLast()) {
-                        drawingPanel.points.removeLast();
-                        drawingPanel.points.removeLast();
+                        drawingPanel.dots.removeLast();
+                        drawingPanel.dots.removeLast();
                         drawingPanel.isLine.removeLast();
                         drawingPanel.isLine.removeLast();
                     }
                     else {
-                        drawingPanel.points.removeLast();
+                        drawingPanel.dots.removeLast();
                         drawingPanel.isLine.removeLast();
                     }
                     drawingPanel.repaint();
@@ -175,9 +175,33 @@ class Frame extends JFrame {
         private boolean isPressed;
         private final DrawingPanelListener drawingPanelListener = new DrawingPanelListener();
         private Graphics2D g2d;
-        private final List<Point> points = new ArrayList<>();
+        private final List<Dot> dots = new ArrayList<>();
         private final List<Boolean> isLine = new ArrayList<>();
         private int drawLength;
+
+        private static class Dot {
+            private int drawLength;
+            private Color drawColor;
+            private Point point;
+
+            public Dot(Point point, int drawLength, Color drawColor) {
+                this.drawLength = drawLength;
+                this.drawColor = drawColor;
+                this.point = point;
+            }
+
+            public int getDrawLength() {
+                return drawLength;
+            }
+
+            public Color getDrawColor() {
+                return drawColor;
+            }
+
+            public Point getPoint() {
+                return point;
+            }
+        }
 
         public DrawingPanel() {
             setCursorForPanel();
@@ -204,25 +228,25 @@ class Frame extends JFrame {
         }
 
         private void reDrawPoints() {
-            for (int i = 0; i < points.size(); i++) {
+            for (int i = 0; i < dots.size(); i++) {
+                Dot dot = dots.get(i);
+                Point point1 = dot.getPoint();
                 if (i + 1 < isLine.size() && isLine.get(i + 1)) {
-                    Point point1 = points.get(i);
-                    Point point2 = points.get(i + 1);
-                    drawLine(point1, point2);
+                    Point point2 = dots.get(i + 1).getPoint();
+                    drawLine(point1, point2, dot.getDrawLength(), dot.getDrawColor());
                 } else {
-                    Point point = points.get(i);
-                    drawDot(point);
+                    drawDot(point1, dot.getDrawLength(), dot.getDrawColor());
                 }
             }
         }
 
-        private void drawLine(Point point1, Point point2) {
+        private void drawLine(Point point1, Point point2, int drawLength, Color drawColor) {
             g2d.setPaint(drawColor);
             g2d.setStroke(new BasicStroke(drawLength));
             g2d.drawLine(point1.x, point1.y, point2.x, point2.y);
         }
 
-        private void drawDot(Point point) {
+        private void drawDot(Point point, int drawLength, Color drawColor) {
             g2d.setPaint(drawColor);
             g2d.fillOval(point.x, point.y, drawLength, drawLength);
         }
@@ -232,7 +256,7 @@ class Frame extends JFrame {
             @Override
             public void mousePressed(MouseEvent e) {
                 isPressed = true;
-                points.add(e.getPoint());
+                dots.add(new Dot(e.getPoint(), drawLength, drawColor));
                 isLine.add(false);
                 repaint();
             }
@@ -246,7 +270,7 @@ class Frame extends JFrame {
             public void mouseDragged(MouseEvent e) {
                 Point point = e.getPoint();
                 if (isPressed && contains(point)) {
-                    points.add(point);
+                    dots.add(new Dot(point, drawLength, drawColor));
                     isLine.add(true);
                     repaint();
                 }
