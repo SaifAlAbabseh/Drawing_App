@@ -12,12 +12,6 @@ import java.util.List;
 
 class Frame extends JFrame {
 
-    private final int frameWidth = 1000;
-    private final int frameHeight = 1000;
-
-    private final JToolBar toolBar;
-    private final JMenuBar menuBar;
-    private final JMenu fileMenu, saveFileAsMenu, colorsMenu, propsMenu;
     private final JMenuItem pngItem, jpgItem, clearItem, changeBackColorItem, changeDrawColorItem, changeDrawLengthItem;
 
     private final DrawingPanel drawingPanel;
@@ -26,17 +20,17 @@ class Frame extends JFrame {
     public Frame() {
         listener = new Listener();
         drawingPanel = new DrawingPanel();
-        toolBar = new JToolBar();
+        JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
-        menuBar = new JMenuBar();
-        fileMenu = new JMenu("File");
-        saveFileAsMenu = new JMenu("Save File As: ");
-        colorsMenu = new JMenu("Colors");
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+        JMenu saveFileAsMenu = new JMenu("Save File As: ");
+        JMenu colorsMenu = new JMenu("Colors");
         changeBackColorItem = new JMenuItem("Change Back Color");
         changeBackColorItem.addActionListener(listener);
         changeDrawColorItem = new JMenuItem("Change Draw Color");
         changeDrawColorItem.addActionListener(listener);
-        propsMenu = new JMenu("Draw_Props");
+        JMenu propsMenu = new JMenu("Draw_Props");
         changeDrawLengthItem = new JMenuItem("Change Draw Length");
         changeDrawLengthItem.addActionListener(listener);
         propsMenu.add(changeDrawLengthItem);
@@ -64,6 +58,8 @@ class Frame extends JFrame {
     private void initFrame() {
         setTitle("Drawing App");
         addKeyListener(listener);
+        int frameWidth = 1000;
+        int frameHeight = 1000;
         setSize(frameWidth, frameHeight);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -168,43 +164,21 @@ class Frame extends JFrame {
         public void keyReleased(KeyEvent e) {}
     }
 
-    private class DrawingPanel extends JPanel {
+    private static class DrawingPanel extends JPanel {
 
         private Color drawColor = Color.RED;
         private Color backgroundColor = Color.BLACK;
         private boolean isPressed;
-        private final DrawingPanelListener drawingPanelListener = new DrawingPanelListener();
         private Graphics2D g2d;
         private final List<Dot> dots = new ArrayList<>();
         private final List<Boolean> isLine = new ArrayList<>();
         private int drawLength;
 
-        private static class Dot {
-            private int drawLength;
-            private Color drawColor;
-            private Point point;
-
-            public Dot(Point point, int drawLength, Color drawColor) {
-                this.drawLength = drawLength;
-                this.drawColor = drawColor;
-                this.point = point;
-            }
-
-            public int getDrawLength() {
-                return drawLength;
-            }
-
-            public Color getDrawColor() {
-                return drawColor;
-            }
-
-            public Point getPoint() {
-                return point;
-            }
-        }
+        private record Dot(Point point, int drawLength, Color drawColor) {}
 
         public DrawingPanel() {
             setCursorForPanel();
+            DrawingPanelListener drawingPanelListener = new DrawingPanelListener();
             addMouseListener(drawingPanelListener);
             addMouseMotionListener(drawingPanelListener);
             drawLength = 10;
@@ -230,12 +204,12 @@ class Frame extends JFrame {
         private void reDrawPoints() {
             for (int i = 0; i < dots.size(); i++) {
                 Dot dot = dots.get(i);
-                Point point1 = dot.getPoint();
+                Point point1 = dot.point();
                 if (i + 1 < isLine.size() && isLine.get(i + 1)) {
-                    Point point2 = dots.get(i + 1).getPoint();
-                    drawLine(point1, point2, dot.getDrawLength(), dot.getDrawColor());
+                    Point point2 = dots.get(i + 1).point();
+                    drawLine(point1, point2, dot.drawLength(), dot.drawColor());
                 } else {
-                    drawDot(point1, dot.getDrawLength(), dot.getDrawColor());
+                    drawDot(point1, dot.drawLength(), dot.drawColor());
                 }
             }
         }
